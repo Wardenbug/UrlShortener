@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36221.1 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		Directory.Build.props = Directory.Build.props
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{EBA24378-CE05-4742-9DAA-1885CFE9CDE8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UrlShortener.Api", "src\UrlShortener.Api\UrlShortener.Api.csproj", "{32EB9574-5F93-4756-8D0B-6FCABAB7DD41}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{32EB9574-5F93-4756-8D0B-6FCABAB7DD41}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{32EB9574-5F93-4756-8D0B-6FCABAB7DD41}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{32EB9574-5F93-4756-8D0B-6FCABAB7DD41}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{32EB9574-5F93-4756-8D0B-6FCABAB7DD41}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{32EB9574-5F93-4756-8D0B-6FCABAB7DD41} = {EBA24378-CE05-4742-9DAA-1885CFE9CDE8}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E9DB6E2A-E59E-4187-8D37-F1C77AB5F403}
+	EndGlobalSection
+EndGlobal
