@@ -1,6 +1,36 @@
 services:
   urlshortener.api:
     image: ${DOCKER_REGISTRY-}urlshortenerapi
+    container_name: UrlChortener.Api
     build:
       context: .
       dockerfile: src/UrlShortener.Api/Dockerfile
+
+  urlshortener.database:
+    image: postgres:latest
+    container_name: UrlShortener.Database
+    environment:
+      - POSTGRES_DB=urlshortener
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - ./.containers/db:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+
+  urlshortener.redis:
+    image: redis:latest
+    container_name: UrlShortener.Redis
+    restart: always
+    ports:
+      - 6379:6379
+
+  urlshortener.seq:
+    image: datalust/seq:latest
+    container_name: UrlShortener.Seq
+    environment:
+      - ACCEPT_EULA=Y
+      - SEQ_FIRSTRUN_NOAUTHENTICATION=True
+    ports:
+      - 5341:5341
+      - 8081:80

@@ -1,7 +1,7 @@
 ﻿// Migrations/202508041214_CreateUrlTable.cs
 using FluentMigrator;
 
-namespace UrlShortener.Api.Migrations;
+namespace UrlShortener.Api.Data.Migrations;
 
 [Migration(202508041214)]
 internal sealed class CreateUrlTable : Migration
