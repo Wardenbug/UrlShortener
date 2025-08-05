@@ -1,15 +1,15 @@
 using FluentMigrator.Runner;
-using UrlShortener.Api.Migrations;
+using UrlShortener.Api.Abstractions;
+using UrlShortener.Api.Endpoints;
+using UrlShortener.Api.Extensions;
+using UrlShortener.Api.Services;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
-builder.Services.AddFluentMigratorCore()
-    .ConfigureRunner(rb => rb
-        .AddPostgres()
-        .WithGlobalConnectionString(builder.Configuration.GetConnectionString("Database"))
-        .ScanIn(typeof(CreateUrlTable).Assembly).For.Migrations())
-    .AddLogging(lb => lb.AddFluentMigratorConsole());
+builder.Services.AddPersistence(builder.Configuration);
+
+builder.Services.AddSingleton<IUrlConverter, UrlConverter>();
 
 WebApplication app = builder.Build();
 
@@ -20,10 +20,12 @@ if (app.Environment.IsDevelopment())
 
 if (builder.Configuration.GetValue<bool>("RunMigrations"))
 {
-    using var scope = app.Services.CreateScope();
-    var runner = scope.ServiceProvider.GetRequiredService<IMigrationRunner>();
+    using IServiceScope scope = app.Services.CreateScope();
+    IMigrationRunner runner = scope.ServiceProvider.GetRequiredService<IMigrationRunner>();
     runner.MigrateUp();
 }
+
+app.MapEndpoints();
 
 app.UseHttpsRedirection();
 
