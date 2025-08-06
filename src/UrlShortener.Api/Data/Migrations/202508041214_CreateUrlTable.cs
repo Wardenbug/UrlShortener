@@ -22,7 +22,16 @@ public sealed class CreateUrlTable : Migration
                 .NotNullable()
             .WithColumn("short_code")
                 .AsString(50)
-                .NotNullable();
+                .NotNullable()
+                .Unique()
+            .WithColumn("redirect_count")
+                .AsInt32()
+                .NotNullable()
+                .WithDefaultValue(0)
+            .WithColumn("created_at")
+                .AsDateTime()
+                .NotNullable()
+                .WithDefault(SystemMethods.CurrentUTCDateTime);  
     }
 
     public override void Down()
