@@ -10,6 +10,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddPersistence(builder.Configuration);
 
 builder.Services.AddSingleton<IUrlConverter, UrlConverter>();
+builder.Services.AddSingleton<ICacheService, CacheService>();
 
 WebApplication app = builder.Build();
 
@@ -29,4 +30,4 @@ app.MapEndpoints();
 
 app.UseHttpsRedirection();
 
-await app.RunAsync().ConfigureAwait(false);
+app.Run();

@@ -1,4 +1,5 @@
-﻿using System.Data;
+﻿using System;
+using System.Data;
 using Dapper;
 using Microsoft.AspNetCore.Http.HttpResults;
 using UrlShortener.Api.Abstractions;
@@ -20,7 +21,8 @@ internal static class UrlShortenerEndpoints
     public static async Task<Results<Ok<ShortenResponse>, BadRequest<string>>> CreateLinkAsync(
         CreateShortLinkRequest request,
         IUrlConverter urlConverter,
-        ISqlConnectionFactory sqlConnectionFactory)
+        ISqlConnectionFactory sqlConnectionFactory,
+        IConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(urlConverter);
@@ -48,13 +50,17 @@ internal static class UrlShortenerEndpoints
 
         await connection.ExecuteAsync(updateSql, new { ShortCode = shortCode, Id = id });
 
-        return TypedResults.Ok(new ShortenResponse($"https://yourdomain.com/{shortCode}"));
+        return TypedResults.Ok(
+            new ShortenResponse($"{configuration["Domain"]}{shortCode}")
+            );
     }
 
     public static async Task<IResult> RedirectToOriginalAsync(
         string code,
         IUrlConverter urlConverter,
-        ISqlConnectionFactory sqlConnectionFactory)
+        ICacheService cacheService,
+        ISqlConnectionFactory sqlConnectionFactory,
+        CancellationToken cancellationToken)
     {
         int id;
         try
@@ -72,14 +78,27 @@ internal static class UrlShortenerEndpoints
 
         using IDbConnection connection = sqlConnectionFactory.CreateConnection();
 
+        string? cachedUrl = await cacheService.GetAsync<string>(code, cancellationToken);
+
         const string sql = """
-            SELECT
-                id AS Id,
-                original_url AS OriginalUrl,
-                short_code AS ShortCode
-            FROM public.urls
-            WHERE id = @Id  
+                SELECT
+                    id AS Id,
+                    original_url AS OriginalUrl
+                FROM public.urls
+                WHERE id = @Id  
+                """;
+
+        const string incrementRedirectSql = """
+            UPDATE public.urls SET redirect_count = redirect_count + 1 WHERE id = @Id;
             """;
+
+        if (cachedUrl is not null)
+        {
+
+            await connection.ExecuteAsync(incrementRedirectSql, new { Id = id });
+
+            return Results.Redirect(cachedUrl);
+        }
 
         UrlEntity? url = await connection.QueryFirstOrDefaultAsync<UrlEntity>(
             sql,
@@ -91,8 +110,11 @@ internal static class UrlShortenerEndpoints
         if (url is null)
         {
             return Results.NotFound("URL not found.");
-
         }
+
+        await cacheService.SetAsync(code, url.OriginalUrl, cancellationToken: cancellationToken);
+
+        await connection.ExecuteAsync(incrementRedirectSql, new { Id = id });
 
         return Results.Redirect(url.OriginalUrl);
     }
