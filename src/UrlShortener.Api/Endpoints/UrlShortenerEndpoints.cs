@@ -1,5 +1,4 @@
-﻿using System;
-using System.Data;
+﻿using System.Data;
 using Dapper;
 using Microsoft.AspNetCore.Http.HttpResults;
 using UrlShortener.Api.Abstractions;
@@ -24,9 +23,6 @@ internal static class UrlShortenerEndpoints
         ISqlConnectionFactory sqlConnectionFactory,
         IConfiguration configuration)
     {
-        ArgumentNullException.ThrowIfNull(request);
-        ArgumentNullException.ThrowIfNull(urlConverter);
-
         if (!Uri.TryCreate(request.OriginalUrl, UriKind.Absolute, out _))
         {
             return TypedResults.BadRequest("Invalid URL format.");
@@ -34,21 +30,22 @@ internal static class UrlShortenerEndpoints
 
         using IDbConnection connection = sqlConnectionFactory.CreateConnection();
 
+        int newId = await connection.ExecuteScalarAsync<int>("SELECT nextval('urls_id_seq')");
+
+        string shortCode = urlConverter.Encode(newId);
+
         const string insertSql = @"
-                INSERT INTO public.urls (original_url, short_code)
-                VALUES (@OriginalUrl, @ShortCode)
-                RETURNING id;
+                INSERT INTO public.urls (id, original_url, short_code)
+                VALUES (@Id, @OriginalUrl, @ShortCode)
             ";
 
-        int id = await connection.ExecuteScalarAsync<int>(insertSql, new { request.OriginalUrl, ShortCode = "" });
-
-        string shortCode = urlConverter.Encode(id);
-
-        const string updateSql = @"
-                UPDATE public.urls SET short_code = @ShortCode WHERE id = @Id;
-            ";
-
-        await connection.ExecuteAsync(updateSql, new { ShortCode = shortCode, Id = id });
+        await connection.ExecuteAsync(insertSql,
+            new
+            {
+                Id = newId,
+                request.OriginalUrl,
+                ShortCode = shortCode
+            });
 
         return TypedResults.Ok(
             new ShortenResponse($"{configuration["Domain"]}{shortCode}")

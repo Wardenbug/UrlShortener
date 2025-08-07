@@ -9,11 +9,12 @@ public sealed class CreateUrlTable : Migration
 {
     public override void Up()
     {
+        Execute.Sql("CREATE SEQUENCE IF NOT EXISTS urls_id_seq START WITH 1 INCREMENT BY 1;");
+
         Create.Table("urls")
             .WithColumn("id")
                 .AsInt32()
                 .PrimaryKey()
-                .Identity()
                 .NotNullable()
             .WithColumn("original_url")
                 .AsString(500)
@@ -35,5 +36,6 @@ public sealed class CreateUrlTable : Migration
     public override void Down()
     {
         Delete.Table("urls");
+        Execute.Sql("DROP SEQUENCE IF EXISTS urls_id_seq;");
     }
 }
