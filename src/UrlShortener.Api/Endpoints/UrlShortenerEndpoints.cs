@@ -21,16 +21,21 @@ internal static class UrlShortenerEndpoints
         CreateShortLinkRequest request,
         IUrlConverter urlConverter,
         ISqlConnectionFactory sqlConnectionFactory,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        ILogger<Program> logger,
+        CancellationToken cancellationToken)
     {
         if (!Uri.TryCreate(request.OriginalUrl, UriKind.Absolute, out _))
         {
             return TypedResults.BadRequest("Invalid URL format.");
         }
 
+        logger.LogInformation("Generating short link for {OrinalLink}",
+           request.OriginalUrl);
+
         using IDbConnection connection = sqlConnectionFactory.CreateConnection();
 
-        int newId = await connection.ExecuteScalarAsync<int>("SELECT nextval('urls_id_seq')");
+        int newId = await connection.ExecuteScalarAsync<int>("SELECT nextval('urls_id_seq')", cancellationToken);
 
         string shortCode = urlConverter.Encode(newId);
 
@@ -47,9 +52,14 @@ internal static class UrlShortenerEndpoints
                 ShortCode = shortCode
             });
 
+        string shortLink = $"{configuration["Domain"]}{shortCode}";
+
+        logger.LogInformation("Generated short link {ShortLink} for {OriginalLink}",
+            shortLink,
+            request.OriginalUrl);
+
         return TypedResults.Ok(
-            new ShortenResponse($"{configuration["Domain"]}{shortCode}")
-            );
+            new ShortenResponse(shortLink));
     }
 
     public static async Task<IResult> RedirectToOriginalAsync(
@@ -57,6 +67,8 @@ internal static class UrlShortenerEndpoints
         IUrlConverter urlConverter,
         ICacheService cacheService,
         ISqlConnectionFactory sqlConnectionFactory,
+        ILogger<Program> logger,
+        IConfiguration configuration,
         CancellationToken cancellationToken)
     {
         int id;
@@ -89,13 +101,17 @@ internal static class UrlShortenerEndpoints
             UPDATE public.urls SET redirect_count = redirect_count + 1 WHERE id = @Id;
             """;
 
+        string shortLink = $"{configuration["Domain"]}{code}";
+
+
         if (cachedUrl is not null)
         {
-
+            logger.LogInformation("Redirected to {Url} from {ShortUrl}", cachedUrl, shortLink);
             await connection.ExecuteAsync(incrementRedirectSql, new { Id = id });
 
             return Results.Redirect(cachedUrl);
         }
+
 
         UrlEntity? url = await connection.QueryFirstOrDefaultAsync<UrlEntity>(
             sql,
@@ -106,12 +122,16 @@ internal static class UrlShortenerEndpoints
 
         if (url is null)
         {
+            logger.LogWarning("Short URL {ShortUrl} not found", shortLink);
+
             return Results.NotFound("URL not found.");
         }
 
         await cacheService.SetAsync(code, url.OriginalUrl, cancellationToken: cancellationToken);
 
         await connection.ExecuteAsync(incrementRedirectSql, new { Id = id });
+
+        logger.LogInformation("Redirected to {Url} from {ShortUrl}", url.OriginalUrl, shortLink);
 
         return Results.Redirect(url.OriginalUrl);
     }

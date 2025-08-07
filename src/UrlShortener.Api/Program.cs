@@ -1,10 +1,14 @@
 using FluentMigrator.Runner;
+using Serilog;
 using UrlShortener.Api.Abstractions;
 using UrlShortener.Api.Endpoints;
 using UrlShortener.Api.Extensions;
 using UrlShortener.Api.Services;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((context, configuration) =>
+    configuration.ReadFrom.Configuration(context.Configuration));
 
 builder.Services.AddOpenApi();
 builder.Services.AddPersistence(builder.Configuration);
@@ -26,6 +30,7 @@ if (builder.Configuration.GetValue<bool>("RunMigrations"))
     runner.MigrateUp();
 }
 
+app.UseSerilogRequestLogging();
 app.MapEndpoints();
 
 app.UseHttpsRedirection();
