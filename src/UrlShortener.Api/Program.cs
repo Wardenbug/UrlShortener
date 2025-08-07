@@ -18,7 +18,7 @@ builder.Services.AddMemoryCache();
 
 builder.Services.AddRateLimiting(builder.Configuration);
 
-builder.Services.AddSingleton<IUrlConverter, UrlConverter>();
+builder.Services.AddSingleton<IUrlConverter, Base62Converter>();
 builder.Services.AddSingleton<ICacheService, CacheService>();
 
 WebApplication app = builder.Build();

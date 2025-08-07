@@ -2,11 +2,11 @@
 
 namespace UrlShortener.Api.Services;
 
-internal sealed class UrlConverter : IUrlConverter
+internal sealed class Base62Converter : IUrlConverter
 {
     private const string Alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
-    public string Encode(int id)
+    public string Encode(uint id)
     {
         if (id == 0)
         {
@@ -18,15 +18,20 @@ internal sealed class UrlConverter : IUrlConverter
 
         while (id > 0)
         {
-            result[--index] = Alphabet[id % 62];
+            result[--index] = Alphabet[(int)(id % 62)];
             id /= 62;
         }
 
         return new string(result.Slice(index));
     }
 
-    public int Decode(string shortUrl)
+    public uint Decode(string shortUrl)
     {
+        if (shortUrl.Length > 11)
+        {
+            return 0;
+        }
+
         int id = 0;
         foreach (char ch in shortUrl)
         {
@@ -44,7 +49,7 @@ internal sealed class UrlConverter : IUrlConverter
                 id += ch - '0' + 52;
             }
         }
-        return id;
+        return (uint)id;
     }
 
 }

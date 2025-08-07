@@ -35,7 +35,7 @@ internal static class UrlShortenerEndpoints
 
         using IDbConnection connection = sqlConnectionFactory.CreateConnection();
 
-        int newId = await connection.ExecuteScalarAsync<int>("SELECT nextval('urls_id_seq')", cancellationToken);
+        uint newId = await connection.ExecuteScalarAsync<uint>("SELECT nextval('urls_id_seq')", cancellationToken);
 
         string shortCode = urlConverter.Encode(newId);
 
@@ -71,7 +71,7 @@ internal static class UrlShortenerEndpoints
         IConfiguration configuration,
         CancellationToken cancellationToken)
     {
-        int id;
+        uint id;
         try
         {
             id = urlConverter.Decode(code);

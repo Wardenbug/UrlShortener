@@ -2,6 +2,6 @@
 
 internal interface IUrlConverter
 {
-    int Decode(string shortUrl);
-    string Encode(int id);
+    uint Decode(string shortUrl);
+    string Encode(uint id);
 }
