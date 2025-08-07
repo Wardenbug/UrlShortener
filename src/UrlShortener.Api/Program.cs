@@ -1,3 +1,4 @@
+using AspNetCoreRateLimit;
 using FluentMigrator.Runner;
 using Serilog;
 using UrlShortener.Api.Abstractions;
@@ -12,6 +13,10 @@ builder.Host.UseSerilog((context, configuration) =>
 
 builder.Services.AddOpenApi();
 builder.Services.AddPersistence(builder.Configuration);
+
+builder.Services.AddMemoryCache();
+
+builder.Services.AddRateLimiting(builder.Configuration);
 
 builder.Services.AddSingleton<IUrlConverter, UrlConverter>();
 builder.Services.AddSingleton<ICacheService, CacheService>();
@@ -30,6 +35,7 @@ if (builder.Configuration.GetValue<bool>("RunMigrations"))
     runner.MigrateUp();
 }
 
+app.UseIpRateLimiting();
 app.UseSerilogRequestLogging();
 app.MapEndpoints();
 
