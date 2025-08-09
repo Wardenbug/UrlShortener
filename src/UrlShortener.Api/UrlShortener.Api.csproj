@@ -25,5 +25,9 @@
 	<ItemGroup>
 		<InternalsVisibleTo Include="UrlShortener.UnitTests" />
 	</ItemGroup>
+	<ItemGroup>
+		<InternalsVisibleTo Include="UrlShortener.IntegrationTests" />
+	</ItemGroup>
+
 
 </Project>

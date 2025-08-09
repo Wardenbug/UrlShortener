@@ -47,7 +47,7 @@ internal static class UrlShortenerEndpoints
         await connection.ExecuteAsync(insertSql,
             new
             {
-                Id = newId,
+                Id = (int)newId,
                 request.OriginalUrl,
                 ShortCode = shortCode
             });
