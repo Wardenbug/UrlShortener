@@ -21,8 +21,8 @@ jobs:
       with:
         dotnet-version: 9.0.x
     - name: Restore dependencies
-      run: dotnet restore UrlShortener.Api
+      run: dotnet restore UrlShortener
     - name: Build
-      run: dotnet build UrlShortener.Api --no-restore
+      run: dotnet build UrlShortener --no-restore
     - name: Test
-      run: dotnet test UrlShortener.Api --no-build --verbosity normal
+      run: dotnet test UrlShortener --no-build --verbosity normal
